@@ -15,12 +15,14 @@
             --primary-color: #2c3e50;
             --secondary-color: #34495e;
             --accent-color: #d62976; /* Instagram Pink */
-            --background-color: #f0f2f5; /* 10% 어둡게 조정 */
+            --background-color: #f0f2f5;
             --text-color: #ffffff;
             --card-bg-color: #ffffff;
             --card-text-color: #333;
             --success-color: #2ecc71;
             --error-color: #e74c3c;
+            --guide-bg-color: #ffffff;
+            --header-gradient: linear-gradient(45deg, #d9842e 0%, #d05f36 25%, #c7223b 50%, #b8205c 75%, #a9167a 100%);
         }
 
         body {
@@ -42,12 +44,11 @@
         }
 
         header {
-            /* 10% 어두워진 인스타그램 스타일 그라데이션 배경 */
-            background: linear-gradient(45deg, #d9842e 0%, #d05f36 25%, #c7223b 50%, #b8205c 75%, #a9167a 100%);
+            background: var(--header-gradient);
             color: var(--text-color);
             padding: 35px 25px;
-            border-radius: 16px; /* 모던한 스타일로 조정 */
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); /* 부드러운 그림자 */
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
             margin-bottom: 40px;
         }
 
@@ -55,7 +56,7 @@
             margin: 0;
             font-size: 2.6em;
             font-weight: 700;
-            letter-spacing: -0.5px; /* 자간 조정 */
+            letter-spacing: -0.5px;
         }
 
         header p {
@@ -63,6 +64,7 @@
             font-size: 1.2em;
             opacity: 0.95;
             font-weight: 500;
+            word-break: keep-all;
         }
 
         .upload-area {
@@ -100,6 +102,7 @@
             font-weight: 500;
             color: var(--secondary-color);
             margin-top: 15px;
+            word-break: keep-all;
         }
 
         .upload-text span {
@@ -171,7 +174,7 @@
             color: var(--card-text-color);
             font-weight: 500;
             font-size: 1.1em;
-            word-break: break-all;
+            overflow-wrap: break-word;
         }
         
         .user-item a:hover {
@@ -186,12 +189,95 @@
             height: 40px;
             animation: spin 1s linear infinite;
             margin: 20px auto;
-            display: none; /* Initially hidden */
+            display: none;
+        }
+        
+        .how-to-guide {
+            margin-top: 60px;
+            background: var(--guide-bg-color);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .how-to-guide h2 {
+            font-size: 1.6em;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .how-to-guide h2 svg {
+            margin-right: 12px;
+            color: var(--primary-color);
+        }
+
+        .how-to-guide ol {
+            list-style: none;
+            padding-left: 0;
+            counter-reset: step-counter;
+        }
+
+        .how-to-guide li {
+            position: relative;
+            padding: 15px 0 15px 50px;
+            font-size: 1.1em;
+            counter-increment: step-counter;
+            border-top: 1px solid #eee;
+            line-height: 1.6;
+        }
+        .how-to-guide li:first-child {
+            border-top: none;
+        }
+
+        .how-to-guide li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background: var(--header-gradient);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+        }
+        
+        .how-to-guide li strong {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .guide-icon {
+            height: 1.2em;
+            width: 1.2em;
+            margin-right: 6px;
+            vertical-align: text-bottom;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        @media screen and (max-width: 768px) {
+            body { padding: 15px; }
+            header { padding: 25px 20px; margin-bottom: 30px; }
+            header h1 { font-size: 2em; }
+            header p { font-size: 1em; }
+            .upload-area { padding: 40px 20px; }
+            .upload-text { font-size: 1.1em; }
+            .user-list { grid-template-columns: 1fr; gap: 12px; }
+            #results h2, .how-to-guide h2 { font-size: 1.5em; }
+            .how-to-guide li { font-size: 1em; padding-left: 45px; }
+            .how-to-guide li::before { width: 28px; height: 28px; }
         }
 
     </style>
@@ -219,6 +305,20 @@
             <h2>💔 언팔로워 목록 (<span id="unfollower-count">0</span>명)</h2>
             <ul id="unfollower-list" class="user-list"></ul>
         </div>
+        
+        <section class="how-to-guide">
+            <h2>
+                ZIP 파일 다운로드 방법
+            </h2>
+            <ol>
+                <li> <strong>☰</strong> (인스타그램 앱 우측 상단) <strong>> 계정 센터</strong>로 이동하세요.</li>
+                <li><strong>내 정보 및 권한 > 내 정보 내보내기</strong>를 선택하세요.</li>
+                <li><strong>내보내기 만들기 > 기기로 보내기</strong>를 선택하세요.</li>
+                <li>정보 맞춤 설정에서 <strong>'팔로워 및 팔로잉'만 체크</strong>하고 나머지는 해제하세요.</li>
+                <li>기간은 <strong>'전체 기간'</strong>, 형식은 <strong>'JSON'</strong>으로 선택 후 저장하세요.</li>
+                <li><strong>내보내기 시작</strong> 후 완료되면 ZIP 파일을 다운로드하여 업로드하세요.</li>
+            </ol>
+        </section>
     </div>
 
     <script>
@@ -297,10 +397,8 @@
                 
                 // 인스타그램 데이터 구조가 다양할 수 있어, 유연하게 사용자 이름 목록을 추출하는 함수
                 const getUsernameList = (data) => {
-                    // 데이터가 객체이고 특정 키(relationships_...)를 가지는 경우와, 바로 배열인 경우를 모두 처리
                     const list = Array.isArray(data) ? data : data.relationships_following || data.relationships_followers || [];
                     if (!list || list.length === 0) {
-                        // 2023년 이후 일부 데이터 형식: 최상위 키가 배열인 경우
                         for (const key in data) {
                             if (Array.isArray(data[key])) {
                                 return new Set(data[key].map(item => item.string_list_data[0].value));
@@ -313,7 +411,6 @@
                 const followersSet = getUsernameList(followersData);
                 const followingSet = getUsernameList(followingData);
 
-                // 내가 팔로우하는 사람 중 나를 팔로우하지 않는 사람(언팔로워) 필터링
                 const unfollowers = [...followingSet].filter(user => !followersSet.has(user));
                 
                 displayResults(unfollowers);
@@ -326,18 +423,15 @@
             }
         }
         
-        // ZIP 파일 내에서 특정 파일 이름을 가진 파일을 찾는 함수
         async function findFileInZip(zip, targetFileName) {
              for (const filePath in zip.files) {
-                // 폴더 경로와 상관없이 파일 이름으로만 검색
                 if (filePath.endsWith(targetFileName) && !zip.files[filePath].dir) {
                     return zip.file(filePath);
                 }
             }
-            return null; // 파일을 찾지 못한 경우 null 반환
+            return null;
         }
 
-        // 결과를 화면에 표시하는 함수
         function displayResults(unfollowers) {
             unfollowerList.innerHTML = '';
             
@@ -346,7 +440,7 @@
                 return;
             }
 
-            updateStatus('분석이 완료되었습니다.', 'success');
+            updateStatus('');
             resultsDiv.classList.add('visible');
             unfollowerCount.textContent = unfollowers.length;
 
@@ -356,7 +450,7 @@
                 
                 const userLink = document.createElement('a');
                 userLink.href = `https://www.instagram.com/${username}`;
-                userLink.target = '_blank'; // 새 탭에서 열기
+                userLink.target = '_blank';
                 userLink.rel = 'noopener noreferrer';
                 userLink.textContent = username;
                 
@@ -365,7 +459,6 @@
             });
         }
         
-        // 상태 메시지를 업데이트하는 함수
         function updateStatus(message, type = 'info') {
             statusDiv.textContent = message;
             statusDiv.style.color = type === 'error' ? 'var(--error-color)' : (type === 'success' ? 'var(--success-color)' : 'var(--secondary-color)');
@@ -374,3 +467,4 @@
 
 </body>
 </html>
+
