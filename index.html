@@ -270,7 +270,13 @@
         @media screen and (max-width: 768px) {
             body { padding: 15px; }
             header { padding: 25px 20px; margin-bottom: 30px; }
-            header h1 { font-size: 2em; }
+            header h1 { 
+                font-size: 1.6em; 
+                line-height: 1.2;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
             header p { font-size: 1em; }
             .upload-area { padding: 40px 20px; }
             .upload-text { font-size: 1.1em; }
@@ -278,6 +284,24 @@
             #results h2, .how-to-guide h2 { font-size: 1.5em; }
             .how-to-guide li { font-size: 1em; padding-left: 45px; }
             .how-to-guide li::before { width: 28px; height: 28px; }
+        }
+
+        @media screen and (max-width: 480px) {
+            header h1 { 
+                font-size: 1.4em;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        @media screen and (max-width: 360px) {
+            header h1 { 
+                font-size: 1.2em;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
         }
 
     </style>
