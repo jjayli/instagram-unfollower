@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인스타그램 언팔로워 찾기</title>
+    <!-- JSZip 라이브러리 로드 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        /* Google Fonts 임포트 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+        /* CSS 변수를 사용한 테마 설정 */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #d62976; /* Instagram Pink */
+            --background-color: #f0f2f5; /* 10% 어둡게 조정 */
+            --text-color: #ffffff;
+            --card-bg-color: #ffffff;
+            --card-text-color: #333;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        header {
+            /* 10% 어두워진 인스타그램 스타일 그라데이션 배경 */
+            background: linear-gradient(45deg, #d9842e 0%, #d05f36 25%, #c7223b 50%, #b8205c 75%, #a9167a 100%);
+            color: var(--text-color);
+            padding: 35px 25px;
+            border-radius: 16px; /* 모던한 스타일로 조정 */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); /* 부드러운 그림자 */
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.6em;
+            font-weight: 700;
+            letter-spacing: -0.5px; /* 자간 조정 */
+        }
+
+        header p {
+            margin: 12px 0 0;
+            font-size: 1.2em;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .upload-area {
+            background: var(--card-bg-color);
+            border: 3px dashed #e0e0e0;
+            border-radius: 16px;
+            padding: 60px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-area.dragover {
+            background: #fdf5f9;
+            border-color: var(--accent-color);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: var(--accent-color);
+            transition: transform 0.3s ease;
+        }
+        
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            font-weight: 500;
+            color: var(--secondary-color);
+            margin-top: 15px;
+        }
+
+        .upload-text span {
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        #status {
+            margin-top: 25px;
+            font-size: 1.1em;
+            color: var(--secondary-color);
+            min-height: 25px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        #results {
+            margin-top: 40px;
+            text-align: left;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            display: none;
+        }
+        
+        #results.visible {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        #results h2 {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 12px;
+            font-size: 1.8em;
+        }
+
+        .user-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .user-item {
+            background: var(--card-bg-color);
+            border-radius: 10px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .user-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-item a {
+            text-decoration: none;
+            color: var(--card-text-color);
+            font-weight: 500;
+            font-size: 1.1em;
+            word-break: break-all;
+        }
+        
+        .user-item a:hover {
+            color: var(--accent-color);
+        }
+
+        .loader {
+            border: 5px solid #e0e0e0;
+            border-top: 5px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Initially hidden */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>인스타그램 언팔로워 찾기</h1>
+            <p>인스타그램 데이터(ZIP)로 나를 언팔한 사람을 찾아보세요.</p>
+        </header>
+
+        <div id="upload-box">
+            <input type="file" id="file-input" accept=".zip">
+            <label for="file-input" id="upload-area" class="upload-area">
+                <div class="upload-icon">📁</div>
+                <p class="upload-text">여기에 ZIP 파일을 드래그 앤 드롭하거나, <span>클릭하여 업로드</span>하세요.</p>
+            </label>
+        </div>
+
+        <div id="status"></div>
+        <div class="loader" id="loader"></div>
+
+        <div id="results">
+            <h2>💔 언팔로워 목록 (<span id="unfollower-count">0</span>명)</h2>
+            <ul id="unfollower-list" class="user-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        // DOM 요소 가져오기
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+        const unfollowerList = document.getElementById('unfollower-list');
+        const unfollowerCount = document.getElementById('unfollower-count');
+        const loader = document.getElementById('loader');
+
+        // 드래그 앤 드롭 이벤트 처리
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
+        });
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+        
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        // 파일 처리 메인 함수
+        async function handleFiles(files) {
+            if (files.length === 0) {
+                updateStatus('파일이 선택되지 않았습니다.', 'error');
+                return;
+            }
+            const file = files[0];
+            if (!file.name.endsWith('.zip')) {
+                updateStatus('ZIP 파일만 업로드할 수 있습니다.', 'error');
+                return;
+            }
+
+            // UI 초기화
+            updateStatus(`'${file.name}' 파일 처리 중...`);
+            loader.style.display = 'block';
+            resultsDiv.classList.remove('visible');
+            unfollowerList.innerHTML = '';
+
+            try {
+                const zip = await JSZip.loadAsync(file);
+                
+                updateStatus('JSON 파일 검색 중...');
+                // ZIP 파일 내에서 followers_1.json과 following.json 파일을 재귀적으로 검색
+                const followersFile = await findFileInZip(zip, 'followers_1.json');
+                const followingFile = await findFileInZip(zip, 'following.json');
+
+                if (!followersFile || !followingFile) {
+                    throw new Error('필수 파일(followers_1.json 또는 following.json)을 찾을 수 없습니다. ZIP 파일 구조를 확인해주세요.');
+                }
+                
+                updateStatus('데이터 분석 중...');
+                const followersText = await followersFile.async('string');
+                const followingText = await followingFile.async('string');
+
+                const followersData = JSON.parse(followersText);
+                const followingData = JSON.parse(followingText);
+                
+                // 인스타그램 데이터 구조가 다양할 수 있어, 유연하게 사용자 이름 목록을 추출하는 함수
+                const getUsernameList = (data) => {
+                    // 데이터가 객체이고 특정 키(relationships_...)를 가지는 경우와, 바로 배열인 경우를 모두 처리
+                    const list = Array.isArray(data) ? data : data.relationships_following || data.relationships_followers || [];
+                    if (!list || list.length === 0) {
+                        // 2023년 이후 일부 데이터 형식: 최상위 키가 배열인 경우
+                        for (const key in data) {
+                            if (Array.isArray(data[key])) {
+                                return new Set(data[key].map(item => item.string_list_data[0].value));
+                            }
+                        }
+                    }
+                    return new Set(list.map(item => item.string_list_data[0].value));
+                };
+                
+                const followersSet = getUsernameList(followersData);
+                const followingSet = getUsernameList(followingData);
+
+                // 내가 팔로우하는 사람 중 나를 팔로우하지 않는 사람(언팔로워) 필터링
+                const unfollowers = [...followingSet].filter(user => !followersSet.has(user));
+                
+                displayResults(unfollowers);
+
+            } catch (error) {
+                console.error(error);
+                updateStatus(`오류 발생: ${error.message}`, 'error');
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+        
+        // ZIP 파일 내에서 특정 파일 이름을 가진 파일을 찾는 함수
+        async function findFileInZip(zip, targetFileName) {
+             for (const filePath in zip.files) {
+                // 폴더 경로와 상관없이 파일 이름으로만 검색
+                if (filePath.endsWith(targetFileName) && !zip.files[filePath].dir) {
+                    return zip.file(filePath);
+                }
+            }
+            return null; // 파일을 찾지 못한 경우 null 반환
+        }
+
+        // 결과를 화면에 표시하는 함수
+        function displayResults(unfollowers) {
+            unfollowerList.innerHTML = '';
+            
+            if (unfollowers.length === 0) {
+                updateStatus('축하합니다! 모든 팔로잉이 당신을 팔로우하고 있습니다. ✅', 'success');
+                return;
+            }
+
+            updateStatus('분석이 완료되었습니다.', 'success');
+            resultsDiv.classList.add('visible');
+            unfollowerCount.textContent = unfollowers.length;
+
+            unfollowers.sort().forEach(username => {
+                const listItem = document.createElement('li');
+                listItem.className = 'user-item';
+                
+                const userLink = document.createElement('a');
+                userLink.href = `https://www.instagram.com/${username}`;
+                userLink.target = '_blank'; // 새 탭에서 열기
+                userLink.rel = 'noopener noreferrer';
+                userLink.textContent = username;
+                
+                listItem.appendChild(userLink);
+                unfollowerList.appendChild(listItem);
+            });
+        }
+        
+        // 상태 메시지를 업데이트하는 함수
+        function updateStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.style.color = type === 'error' ? 'var(--error-color)' : (type === 'success' ? 'var(--success-color)' : 'var(--secondary-color)');
+        }
+    </script>
+
+</body>
+</html>
